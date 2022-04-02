@@ -249,12 +249,14 @@ function App() {
     }, []);
 
 
+    const resetTotalState = () => {
+        console.log('ever in resett ???');
+        setStateTotal(startStateTotal);
+    }
     const calcTotal = (node, index) => {
         const allRow = node?.data;
-        if (!allRow) return
         const dataLength = node?.parent?.allChildrenCount;
         let res = {...startStateTotal};
-
         Object.keys(allRow)?.forEach(key => {
             const name = stateTotal[key];
             let getArr = res[key];
@@ -264,38 +266,54 @@ function App() {
             if (res[key]?.length === (dataLength)) {
                 if (key.includes('amount')) {
                     let totalSum = getArr?.reduce((accumulator, current) => accumulator + current, 0);
+                    console.log(totalSum, 'che total summ');
                     setStateTotal(prevState => ({...prevState, [key] : totalSum}));
                 }
                 if (key.includes('_rate')) {
                     let avgTotal = getArr?.reduce(reducerFn, 0);
+                    console.log(avgTotal, 'che avgTotal');
                     setStateTotal(prevState => ({...prevState, [key] : avgTotal}));
                 }
             }
         });
+        res = startStateTotal;
     };
 
-    const onBtForEachNodeAfterFilterAndSort = useCallback(() => {
-        gridRef.current.api.forEachNodeAfterFilterAndSort(calcTotal);
-    }, []);
 
 
     useEffect(() => {
-      console.log(stateTotal, 'totalll');
         gridRef.current?.api?.setPinnedBottomRowData([{...stateTotal, outlet: 'Total'}]);
-    }, [stateTotal])
+    }, [stateTotal]);
+
+    const onFilterChanged = () => {
+        if (stateTotal.vendor_commission_rate.length > 0){
+            resetTotalState();
+        }
+        gridRef.current.api.forEachNodeAfterFilterAndSort(calcTotal);
+    }
+
+    // const onGridReady = useCallback((params) => {
+    //     console.log('how many times');
+    //     gridRef.current.api.forEachNodeAfterFilterAndSort(calcTotal);
+    // }, []);
 
     return (
         <div className="App">
             <h1>Table overview</h1>
-            <button onClick={onBtForEachNodeAfterFilterAndSort}>
-                For-Each Node After Filter and Sort
-            </button>
+            <br />
+            <div>
+                On activating each filter on column Total is recalculated and represented in footer cells.
+            </div>
+            <br />
             <div className="ag-theme-alpine" style={{minWidth: '100%', height: '550px'}}>
                 <AgGridReact
                     ref={gridRef}
                     rowData={rowData}
                     columnDefs={columnDefs}
                     pinnedBottomRowData={pinnedBottomRowData}
+                    animateRows={true}
+                    onFilterChanged={onFilterChanged}
+                    // onGridReady={onGridReady}
                 >
                 </AgGridReact>
             </div>
