@@ -256,27 +256,27 @@ function App() {
     const calcTotal = (node, index) => {
         const allRow = node?.data;
         const dataLength = node?.parent?.allChildrenCount;
-        let res = {...startStateTotal};
+        const res = startStateTotal;
+        let oldVal = 0;
         Object.keys(allRow)?.forEach(key => {
             const name = stateTotal[key];
             let getArr = res[key];
             if (name || name === 0) {
                 getArr.push(allRow[key]);
             }
+            console.log(res[key]?.length, dataLength, 'HHH', oldVal);
             if (res[key]?.length === (dataLength)) {
                 if (key.includes('amount')) {
                     let totalSum = getArr?.reduce((accumulator, current) => accumulator + current, 0);
-                    console.log(totalSum, 'che total summ');
                     setStateTotal(prevState => ({...prevState, [key] : totalSum}));
                 }
                 if (key.includes('_rate')) {
                     let avgTotal = getArr?.reduce(reducerFn, 0);
-                    console.log(avgTotal, 'che avgTotal');
                     setStateTotal(prevState => ({...prevState, [key] : avgTotal}));
                 }
+                oldVal = res[key]?.length;
             }
         });
-        res = startStateTotal;
     };
 
 
@@ -286,10 +286,12 @@ function App() {
     }, [stateTotal]);
 
     const onFilterChanged = () => {
+        console.log('inside');
         if (stateTotal.vendor_commission_rate.length > 0){
             resetTotalState();
         }
         gridRef.current.api.forEachNodeAfterFilterAndSort(calcTotal);
+        console.log('we have finished it here');
     }
 
     // const onGridReady = useCallback((params) => {
